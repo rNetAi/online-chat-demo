@@ -1,6 +1,6 @@
 {
   "name": "rnet-node-example",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "server.js",
   "type": "module",
@@ -9,13 +9,13 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "rNet Ai",
+  "license": "MIT",
   "dependencies": {
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "rnet-sso-node": "npm:@rnet-ai/rnet-sso-node@0.2.0-beta.1"
+    "rnet-sso-node": "npm:@rnet-ai/rnet-sso-node@0.2.0-beta.3"
   }
 }

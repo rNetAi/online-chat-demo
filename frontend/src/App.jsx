@@ -329,13 +329,13 @@ export default function App() {
         <div className="login-screen">
           <div className="login-hero">
             <div className="login-hero-icon"><IconRnet /></div>
-            <h1 className="login-title">rNet AI Chat</h1>
+            <h1 className="login-title">rNet Ai Chat</h1>
             <p className="login-subtitle">Your intelligent assistant powered by Gemini. Sign in to start chatting.</p>
           </div>
           <div className="login-card">
             <p className="login-card-title">Sign in to continue</p>
             <a href="http://localhost:3001/login" className="login-btn">
-              Continue with rNet
+              Continue with RNet
             </a>
           </div>
           {error && <p style={{color:'#f87171',fontSize:13,marginTop:8}}>{error}</p>}
@@ -352,7 +352,7 @@ export default function App() {
         <div className="sidebar-header">
           <div className="sidebar-brand">
             <div className="sidebar-brand-icon"><IconRnet /></div>
-            <span className="sidebar-brand-name">rNet AI Chat</span>
+            <span className="sidebar-brand-name">rNet Ai Chat</span>
           </div>
           <button className="new-chat-btn" onClick={startNewChat}>
             <IconPlus /> New Chat
@@ -391,7 +391,7 @@ export default function App() {
             <div className="user-avatar">U</div>
             <div className="user-info">
               <div className="user-name">My Account</div>
-              <div className="user-plan">rNet SSO</div>
+              <div className="user-plan">RNet SSO</div>
             </div>
             <button className="logout-btn" title="Log out"><IconLogout /></button>
           </div>
