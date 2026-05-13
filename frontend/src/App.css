@@ -210,6 +210,15 @@
   color: var(--sidebar-text-muted);
 }
 
+.user-email {
+  margin-top: 1px;
+  font-size: 11px;
+  color: var(--sidebar-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .logout-btn {
   background: none;
   border: none;

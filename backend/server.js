@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import { RNetAuth, RNetAi } from '@rnet-ai/rnet-sso-node';
+import { RNetAuth, RNetAi } from '@rnet-ai/rnet-oauth-node';
 import dotenv from 'dotenv';
 import crypto from 'crypto';
 
@@ -11,6 +11,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
+
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
 // Initialize the rNet Auth library
 const config = {
@@ -81,7 +83,7 @@ app.get('/callback', async (req, res) => {
         global.tokenStore.access_token = tokenResponse.access_token;
         global.tokenStore.refresh_token = tokenResponse.refresh_token || null;
 
-        res.redirect(`http://localhost:5173/?login_success=true`);
+        res.redirect(`${FRONTEND_URL}/?login_success=true`);
     } catch (err) {
         console.error('Callback error:', err);
         res.status(500).send(`Token exchange failed: ${err.message}`);
@@ -139,6 +141,25 @@ app.post('/api/auth/refresh', async (req, res) => {
 
     } catch (error) {
         console.error('Token refresh error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.get('/api/userinfo', async (req, res) => {
+    try {
+        const accessToken = global.tokenStore.access_token;
+        if (!accessToken) {
+            return res.status(401).json({ error: 'No access token found in global store. Please login first.' });
+        }
+
+        const userInfo = await rnetAuth.getUserInfo(accessToken);
+
+        res.json({
+            success: true,
+            data: userInfo
+        });
+    } catch (error) {
+        console.error('UserInfo error:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 });

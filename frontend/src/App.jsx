@@ -157,12 +157,16 @@ export default function App() {
   const [input, setInput]             = useState('')
   const [isLoading, setIsLoading]     = useState(false)
   const [error, setError]             = useState(null)
+  const [userInfo, setUserInfo]       = useState(null)
 
   const messagesEndRef  = useRef(null)
   const textareaRef     = useRef(null)
 
   const activeChat = chats.find(c => c.id === activeChatId) || null
   const messages   = activeChat?.messages || []
+  const userEmail  = userInfo?.email || ''
+  const userName   = userInfo?.name || userInfo?.preferred_username || 'My Account'
+  const avatarText = (userEmail || userName || 'U').trim().charAt(0).toUpperCase()
 
   // Auto-login detection
   useEffect(() => {
@@ -174,6 +178,36 @@ export default function App() {
       setError(params.get('error'))
     }
   }, [])
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setUserInfo(null)
+      return
+    }
+
+    let ignore = false
+
+    async function loadUserInfo() {
+      try {
+        const response = await fetch('http://localhost:3001/api/userinfo')
+        const data = await response.json()
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || 'Failed to load user info')
+        }
+        if (!ignore) setUserInfo(data.data)
+      } catch (err) {
+        if (!ignore) {
+          console.error('Failed to load user info:', err)
+        }
+      }
+    }
+
+    loadUserInfo()
+
+    return () => {
+      ignore = true
+    }
+  }, [isLoggedIn])
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -318,11 +352,12 @@ export default function App() {
         )}
 
         <div className="sidebar-footer">
-          <div className="user-profile" onClick={() => { setIsLoggedIn(false); setChats([]); setActiveChatId(null) }}>
-            <div className="user-avatar">U</div>
+          <div className="user-profile" onClick={() => { setIsLoggedIn(false); setChats([]); setActiveChatId(null); setUserInfo(null) }}>
+            <div className="user-avatar">{avatarText}</div>
             <div className="user-info">
-              <div className="user-name">My Account</div>
-              <div className="user-plan">RNet SSO</div>
+              <div className="user-name">{userName}</div>
+              {userEmail && <div className="user-email">{userEmail}</div>}
+              <div className="user-plan">RNet OAuth</div>
             </div>
             <button className="logout-btn" title="Log out"><IconLogout /></button>
           </div>

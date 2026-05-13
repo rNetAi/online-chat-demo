@@ -1,5 +1,5 @@
 {
-  "name": "rnet-sso-test",
+  "name": "rnet-oauth-test",
   "private": true,
   "version": "1.0.0",
   "type": "module",

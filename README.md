@@ -1,21 +1,82 @@
-# rNet Ai Chat Demo
+# Demo: AI Chat + RNet OAuth
 
-This is a professional chat application demo (similar to ChatGPT) that showcases the power of the **RNet ecosystem**.
+This is a full-stack chat application demo, similar to ChatGPT, that showcases the **RNet ecosystem**.
 
-## The Demo
+AI usage is paid from the user's rNet credit balance, so developer can build pro.
 
-This project consists of a **React Frontend** and a **Node.js Backend**. It demonstrates a seamless authentication and AI interaction flow:
+## Benefits of RNet OAuth
+- **Zero Friction:** Users log in once and share AI tokens across Web, CLI, and IDEs. No manual API key pasting.
+- **Shared Credits:** The same rNet wallet balance can be used across connected apps.
+- **Zero Token Cost:** Developers can build products without paying model API costs.
 
-1.  **Single Sign-On (SSO)**: Users log in once using their RNet account.
-2.  **Cross-App Token Usage**: Once authenticated, the user's RNet token is used to pay for AI model costs. 
-3.  **Unified Billing**: This demo shows how a single RNet token can be used across different applications (Web, VS Code Extensions, Mobile Apps, etc.) without requiring separate API keys or subscriptions for each service.
+## Application Features
+- **Chat Interface**: Send prompts and receive AI responses in a clean chat layout.
+- **Chat History**: View and continue recent conversations.
+- **Model Usage**: Demonstrates calls to developer-selected AI models.
+- **Extensible Architecture**: RAG and other advanced features can be added easily.
 
-## Core Features
+## Set Up
 
-- **ChatGPT-like UI**: A clean, modern chat interface with message history.
-- **AI Streaming**: Real-time response streaming from Gemini models.
-- **Secure Backend**: An Express server that handles OAuth2 PKCE flow and proxies AI requests securely.
-- **RNet Integration**: Uses the `@rnet-ai/rnet-sso-node` library for all authentication and AI logic.
+### Prerequisites
+
+- Node.js and npm
+- An rNet developer account
+- An rNet application registered for this chat app
+
+### Register the rNet Application
+
+1. Log in at the [RNet Dashboard](https://www.rnetai.org/dashboard).
+2. Create a new developer application.
+3. Set the redirect URI exactly to:
+
+   ```text
+   http://localhost:3001/callback
+   ```
+
+   The redirect URI must match the value in `backend/server.js`, including protocol, host, port, and path. `http://localhost` is intended for local development only; production redirect URIs should use HTTPS.
+
+4. Copy the generated **Client ID** and **Client Secret**. The secret is shown only once.
+
+### Configure the Backend
+
+1. Create a `.env` file in `backend/`:
+
+   ```env
+   RNET_CLIENT_ID=your_client_id
+   RNET_CLIENT_SECRET=your_client_secret
+   ```
+
+   Keep this file local. Never expose the client secret in frontend code or commit it.
+
+2. Install backend dependencies and start the API server:
+
+   ```bash
+   cd backend
+   npm install
+   npm start
+   ```
+
+   The backend runs on `http://localhost:3001`.
+
+### Start the Frontend
+
+In a second terminal, install frontend dependencies and start the Vite dev server:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Vite usually runs on `http://localhost:5173`.
+
+### Test the Login and Chat Flow
+
+1. Open the URL printed by Vite.
+2. Click **Continue with RNet**.
+3. Sign in to rNet and approve the app.
+4. After rNet redirects back, send a chat message.
+5. Confirm the backend is running if the chat request fails.
 
 ## Screenshots
 
@@ -33,7 +94,7 @@ This project consists of a **React Frontend** and a **Node.js Backend**. It demo
 
 ## Purpose
 
-The primary goal of this example is to show developers how easy it is to integrate RNet SSO into their own products, allowing their users to bring their own AI credits/tokens to any application.
+The primary goal of this example is to show developers how easy it is to integrate RNet OAuth into their own products, allowing their **users** to bring their own AI credits/tokens to any application.
 
 ## License
 
