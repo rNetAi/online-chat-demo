@@ -1,6 +1,6 @@
 {
   "name": "rnet-node-example",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "",
   "main": "server.js",
   "type": "module",
@@ -12,10 +12,10 @@
   "author": "rNet Ai",
   "license": "MIT",
   "dependencies": {
+    "@rnet-ai/rnet-sso-node": "^1.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "rnet-sso-node": "npm:@rnet-ai/rnet-sso-node@0.2.0-beta.3"
+    "express": "^4.21.2"
   }
 }

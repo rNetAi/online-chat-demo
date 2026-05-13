@@ -1,7 +1,11 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import { RNetAuth, RNetAi } from 'rnet-sso-node';
+import { RNetAuth, RNetAi } from '@rnet-ai/rnet-sso-node';
+import dotenv from 'dotenv';
+import crypto from 'crypto';
+
+dotenv.config();
 
 const app = express();
 app.use(cors());
@@ -10,12 +14,12 @@ app.use(cookieParser());
 
 // Initialize the rNet Auth library
 const config = {
-    clientId: '<application-client-id>',
-    clientSecret: '<application-client-secret>',
+    clientId: process.env.RNET_CLIENT_ID,
+    clientSecret: process.env.RNET_CLIENT_SECRET,
     redirectUri: 'http://localhost:3001/callback',
 };
 const rnetAuth = new RNetAuth(config);
-const rnetAi = new RNetAi(config);
+const rnetAi = new RNetAi();
 
 // Global store for tokens to avoid sending them to frontend
 global.tokenStore = {
@@ -23,16 +27,25 @@ global.tokenStore = {
     refresh_token: null
 };
 
+// In-memory store for PKCE verifiers keyed by state
+const stateStore = new Map();
+
 /**
  * Route: GET /login
  * Description: Redirects the user to the rNet authorization server to initiate login.
  */
 app.get('/login', (req, res) => {
+    // Generate PKCE and a random state
     const pkce = rnetAuth.generatePKCE();
+    const state = crypto.randomBytes(16).toString('hex');
 
-    res.cookie('pkce_verifier', pkce.verifier, { httpOnly: true, maxAge: 5 * 60 * 1000 });
+    // Store the verifier locally using the state as a key
+    stateStore.set(state, pkce.verifier);
 
-    const authUrl = rnetAuth.getAuthorizationUrl(pkce.challenge);
+    // Clean up old state after 5 minutes
+    setTimeout(() => stateStore.delete(state), 5 * 60 * 1000);
+
+    const authUrl = rnetAuth.getAuthorizationUrl(pkce.challenge, state);
     res.redirect(authUrl);
 });
 
@@ -41,7 +54,7 @@ app.get('/login', (req, res) => {
  * Description: The OAuth2 redirect URI handler. The authorization server redirects the user here with a code.
  */
 app.get('/callback', async (req, res) => {
-    const { code, error, error_description } = req.query;
+    const { code, state, error, error_description } = req.query;
 
     if (error) {
         return res.status(400).send(`Authentication failed: ${error} - ${error_description}`);
@@ -52,14 +65,18 @@ app.get('/callback', async (req, res) => {
     }
 
     try {
-        // Retrieve the code_verifier we stored in the cookie
-        const codeVerifier = req.cookies.pkce_verifier;
+        // Retrieve the code_verifier using the state returned from RNet
+        const codeVerifier = stateStore.get(state);
+
+        if (!codeVerifier) {
+            return res.status(400).send('Invalid or expired state. Please try logging in again.');
+        }
 
         // Exchange code for tokens
         const tokenResponse = await rnetAuth.exchangeCodeForToken(code, codeVerifier);
 
-        // Clear the cookie after successful exchange
-        res.clearCookie('pkce_verifier');
+        // Clean up the state store
+        stateStore.delete(state);
 
         global.tokenStore.access_token = tokenResponse.access_token;
         global.tokenStore.refresh_token = tokenResponse.refresh_token || null;

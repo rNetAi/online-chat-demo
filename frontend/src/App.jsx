@@ -152,7 +152,6 @@ function renderContent(text) {
 // ---- Main App ----
 export default function App() {
   const [isLoggedIn, setIsLoggedIn]   = useState(false)
-  const [useStream, setUseStream]     = useState(true)
   const [chats, setChats]             = useState([])        // [{id, title, messages, createdAt}]
   const [activeChatId, setActiveChatId] = useState(null)
   const [input, setInput]             = useState('')
@@ -226,83 +225,15 @@ export default function App() {
     const payload = { model: 'gemini-2.5-flash-lite', messages: newMessages }
 
     try {
-      if (useStream) {
-        updateChat(chatId, c => ({ ...c, messages: [...newMessages, { role: 'assistant', content: '' }] }))
-
-        const response = await fetch('http://localhost:3001/api/ai/stream', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        })
-
-        if (!response.ok) {
-          const err = await response.json().catch(() => ({}))
-          throw new Error(err.error || `Stream failed: ${response.status}`)
-        }
-
-        const reader = response.body.getReader()
-        const decoder = new TextDecoder()
-        let buffer = ''
-        let assistantContent = ''
-
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) break
-
-          buffer += decoder.decode(value, { stream: true })
-          const lines = buffer.split('\n')
-          buffer = lines.pop() || ''
-
-          for (let line of lines) {
-            line = line.trim()
-            if (line === 'data: [DONE]') continue
-            if (line.startsWith('data: ')) {
-              try {
-                const data = JSON.parse(line.slice(6))
-                const chunk = extractText(data)
-                if (chunk) {
-                  assistantContent += chunk
-                  updateChat(chatId, c => {
-                    const msgs = [...c.messages]
-                    msgs[msgs.length - 1] = { role: 'assistant', content: assistantContent }
-                    return { ...c, messages: msgs }
-                  })
-                }
-              } catch { /* partial JSON */ }
-            } else if (line && !line.startsWith(':')) {
-              try {
-                const data = JSON.parse(line)
-                const chunk = extractText(data)
-                if (chunk) {
-                  assistantContent += chunk
-                  updateChat(chatId, c => {
-                    const msgs = [...c.messages]
-                    msgs[msgs.length - 1] = { role: 'assistant', content: assistantContent }
-                    return { ...c, messages: msgs }
-                  })
-                }
-              } catch {
-                assistantContent += line
-                updateChat(chatId, c => {
-                  const msgs = [...c.messages]
-                  msgs[msgs.length - 1] = { role: 'assistant', content: assistantContent }
-                  return { ...c, messages: msgs }
-                })
-              }
-            }
-          }
-        }
-      } else {
-        const response = await fetch('http://localhost:3001/api/ai', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        })
-        const data = await response.json()
-        if (!data.success) throw new Error(data.error || 'AI call failed')
-        const content = extractText(data.data) || JSON.stringify(data.data)
-        updateChat(chatId, c => ({ ...c, messages: [...newMessages, { role: 'assistant', content }] }))
-      }
+      const response = await fetch('http://localhost:3001/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      const data = await response.json()
+      if (!data.success) throw new Error(data.error || 'AI call failed')
+      const content = extractText(data.data) || JSON.stringify(data.data)
+      updateChat(chatId, c => ({ ...c, messages: [...newMessages, { role: 'assistant', content }] }))
     } catch (err) {
       setError(err.message)
       // Remove empty assistant placeholder if stream failed
@@ -407,20 +338,7 @@ export default function App() {
               <span className="model-badge-dot" />
               Gemini 2.5 Flash Lite
             </div>
-            <div className="stream-toggle">
-              <button
-                className={`stream-option ${useStream ? 'active' : ''}`}
-                onClick={() => setUseStream(true)}
-              >
-                ⚡ Stream
-              </button>
-              <button
-                className={`stream-option ${!useStream ? 'active' : ''}`}
-                onClick={() => setUseStream(false)}
-              >
-                ◎ Standard
-              </button>
-            </div>
+
           </div>
         </div>
 

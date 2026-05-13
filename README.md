@@ -17,9 +17,23 @@ This project consists of a **React Frontend** and a **Node.js Backend**. It demo
 - **Secure Backend**: An Express server that handles OAuth2 PKCE flow and proxies AI requests securely.
 - **RNet Integration**: Uses the `@rnet-ai/rnet-sso-node` library for all authentication and AI logic.
 
+## Screenshots
+
+### 1. Login Screen
+
+![Login Screen](screenshot/chat-web-login-screen.png)
+
+### 2. Home Screen (Authenticated)
+
+![Home Screen](screenshot/chat-web-home-screen.png)
+
+### 3. AI Response Output
+
+![AI Response](screenshot/chat-web-response-output.png)
+
 ## Purpose
 
-The primary goal of this example is to show developers how easy it is to integrate RNet SSO into their own products, allowing their users to bring their own AI credits/tokens to any application in the RNet network.
+The primary goal of this example is to show developers how easy it is to integrate RNet SSO into their own products, allowing their users to bring their own AI credits/tokens to any application.
 
 ## License
 
