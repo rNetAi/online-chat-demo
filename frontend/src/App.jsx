@@ -2,23 +2,23 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import './App.css'
 
 // ---- Icons (inline SVG) ----
-const IconPlus    = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-const IconChat    = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-const IconLogout  = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-const IconSend    = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-const IconRnet    = () => <span style={{fontWeight:700, fontSize:13}}>R</span>
-const IconSparkle = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+const IconPlus = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+const IconChat = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+const IconLogout = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+const IconSend = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
+const IconRnet = () => <span style={{ fontWeight: 700, fontSize: 13 }}>R</span>
+const IconSparkle = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" /></svg>
 
 // ---- Helpers ----
-function genId() { return Math.random().toString(36).slice(2,9) }
+function genId() { return Math.random().toString(36).slice(2, 9) }
 function formatTime(date) {
   const d = new Date(date)
   const now = new Date()
   const diff = now - d
   if (diff < 60000) return 'just now'
-  if (diff < 3600000) return `${Math.floor(diff/60000)}m ago`
-  if (diff < 86400000) return d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})
-  return d.toLocaleDateString([], {month:'short', day:'numeric'})
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`
+  if (diff < 86400000) return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  return d.toLocaleDateString([], { month: 'short', day: 'numeric' })
 }
 
 function extractText(obj) {
@@ -48,11 +48,11 @@ function renderInline(text) {
   while ((m = regex.exec(text)) !== null) {
     if (m.index > last) parts.push(text.slice(last, m.index))
     if (m[0].startsWith('**')) {
-      parts.push(<strong key={m.index}>{m[0].slice(2,-2)}</strong>)
+      parts.push(<strong key={m.index}>{m[0].slice(2, -2)}</strong>)
     } else if (m[0].startsWith('*')) {
-      parts.push(<em key={m.index}>{m[0].slice(1,-1)}</em>)
+      parts.push(<em key={m.index}>{m[0].slice(1, -1)}</em>)
     } else {
-      parts.push(<code key={m.index}>{m[0].slice(1,-1)}</code>)
+      parts.push(<code key={m.index}>{m[0].slice(1, -1)}</code>)
     }
     last = m.index + m[0].length
   }
@@ -151,21 +151,21 @@ function renderContent(text) {
 
 // ---- Main App ----
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn]   = useState(false)
-  const [chats, setChats]             = useState([])        // [{id, title, messages, createdAt}]
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [chats, setChats] = useState([])        // [{id, title, messages, createdAt}]
   const [activeChatId, setActiveChatId] = useState(null)
-  const [input, setInput]             = useState('')
-  const [isLoading, setIsLoading]     = useState(false)
-  const [error, setError]             = useState(null)
-  const [userInfo, setUserInfo]       = useState(null)
+  const [input, setInput] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [userInfo, setUserInfo] = useState(null)
 
-  const messagesEndRef  = useRef(null)
-  const textareaRef     = useRef(null)
+  const messagesEndRef = useRef(null)
+  const textareaRef = useRef(null)
 
   const activeChat = chats.find(c => c.id === activeChatId) || null
-  const messages   = activeChat?.messages || []
-  const userEmail  = userInfo?.email || ''
-  const userName   = userInfo?.name || userInfo?.preferred_username || 'My Account'
+  const messages = activeChat?.messages || []
+  const userEmail = userInfo?.email || ''
+  const userName = userInfo?.name || userInfo?.preferred_username || 'My Account'
   const avatarText = (userEmail || userName || 'U').trim().charAt(0).toUpperCase()
 
   // Auto-login detection
@@ -251,7 +251,7 @@ export default function App() {
     }
 
     const newMessages = [...messages, { role: 'user', content }]
-    updateChat(chatId, c => ({ ...c, messages: newMessages, title: c.title === 'New Chat' ? (content.length > 40 ? content.slice(0,40)+'…' : content) : c.title }))
+    updateChat(chatId, c => ({ ...c, messages: newMessages, title: c.title === 'New Chat' ? (content.length > 40 ? content.slice(0, 40) + '…' : content) : c.title }))
     setInput('')
     setIsLoading(true)
     setError(null)
@@ -294,16 +294,16 @@ export default function App() {
         <div className="login-screen">
           <div className="login-hero">
             <div className="login-hero-icon"><IconRnet /></div>
-            <h1 className="login-title">rNet Ai Chat</h1>
-            <p className="login-subtitle">Your intelligent assistant powered by Gemini. Sign in to start chatting.</p>
+            <h1 className="login-title">Ai Chat</h1>
+            <p className="login-subtitle">Your intelligent assistant.</p>
           </div>
           <div className="login-card">
             <p className="login-card-title">Sign in to continue</p>
             <a href="http://localhost:3001/login" className="login-btn">
-              Continue with RNet
+              Continue with rNet
             </a>
           </div>
-          {error && <p style={{color:'#f87171',fontSize:13,marginTop:8}}>{error}</p>}
+          {error && <p style={{ color: '#f87171', fontSize: 13, marginTop: 8 }}>{error}</p>}
         </div>
       </div>
     )
@@ -346,8 +346,8 @@ export default function App() {
         )}
 
         {chats.length === 0 && (
-          <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:'20px'}}>
-            <p style={{fontSize:13,color:'var(--sidebar-text-muted)',textAlign:'center',lineHeight:1.6}}>No chats yet.<br/>Click "New Chat" to begin.</p>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+            <p style={{ fontSize: 13, color: 'var(--sidebar-text-muted)', textAlign: 'center', lineHeight: 1.6 }}>No chats yet.<br />Click "New Chat" to begin.</p>
           </div>
         )}
 
@@ -407,10 +407,10 @@ export default function App() {
                     <div className="message-bubble">
                       {msg.role === 'assistant' && !msg.content && isLoading
                         ? <div className="typing-indicator">
-                            <span className="typing-dot" />
-                            <span className="typing-dot" />
-                            <span className="typing-dot" />
-                          </div>
+                          <span className="typing-dot" />
+                          <span className="typing-dot" />
+                          <span className="typing-dot" />
+                        </div>
                         : renderContent(msg.content)
                       }
                     </div>
@@ -424,7 +424,7 @@ export default function App() {
           {/* Error banner */}
           {error && (
             <div className="error-banner">
-              <span style={{fontSize:16}}>⚠️</span>
+              <span style={{ fontSize: 16 }}>⚠️</span>
               <span className="error-banner-text">{error}</span>
               <button className="error-dismiss" onClick={() => setError(null)}>✕</button>
             </div>
