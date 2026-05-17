@@ -40,6 +40,20 @@ const SUGGESTIONS = [
 ]
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080'
+const EMPTY_MESSAGES = []
+
+function getInitialUrlState() {
+  const params = new URLSearchParams(window.location.search)
+  return {
+    isLoggedIn: params.has('login_success'),
+    error: params.has('error') ? params.get('error') : null,
+    shouldCleanUrl: params.has('login_success'),
+  }
+}
+
+function createdAtFromEvent(event) {
+  return event?.timeStamp ? performance.timeOrigin + event.timeStamp : performance.timeOrigin
+}
 
 // ---- Markdown renderer ----
 function renderInline(text) {
@@ -109,10 +123,10 @@ function renderContent(text) {
       if (h1) { nodes.push(<h1 key={`${si}-${i}`} className="md-h1">{renderInline(h1[1])}</h1>); i++; continue }
 
       // Unordered list (*, -, •)
-      if (/^[\*\-•]\s/.test(line)) {
+      if (/^[*\-•]\s/.test(line)) {
         const items = []
-        while (i < lines.length && /^[\*\-•]\s/.test(lines[i].trimEnd())) {
-          items.push(<li key={i}>{renderInline(lines[i].replace(/^[\*\-•]\s+/, '').trimEnd())}</li>)
+        while (i < lines.length && /^[*\-•]\s/.test(lines[i].trimEnd())) {
+          items.push(<li key={i}>{renderInline(lines[i].replace(/^[*\-•]\s+/, '').trimEnd())}</li>)
           i++
         }
         nodes.push(<ul key={`${si}-ul-${i}`} className="md-ul">{items}</ul>)
@@ -135,7 +149,7 @@ function renderContent(text) {
       while (
         i < lines.length &&
         lines[i].trim() !== '' &&
-        !/^[\*\-•]\s/.test(lines[i]) &&
+        !/^[*\-•]\s/.test(lines[i]) &&
         !/^\d+\.\s/.test(lines[i]) &&
         !/^#+\s/.test(lines[i])
       ) {
@@ -153,37 +167,33 @@ function renderContent(text) {
 
 // ---- Main App ----
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [initialUrlState] = useState(getInitialUrlState)
+  const [isLoggedIn, setIsLoggedIn] = useState(initialUrlState.isLoggedIn)
   const [chats, setChats] = useState([])        // [{id, title, messages, createdAt}]
   const [activeChatId, setActiveChatId] = useState(null)
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState(initialUrlState.error)
   const [userInfo, setUserInfo] = useState(null)
 
   const messagesEndRef = useRef(null)
   const textareaRef = useRef(null)
 
   const activeChat = chats.find(c => c.id === activeChatId) || null
-  const messages = activeChat?.messages || []
+  const messages = activeChat?.messages || EMPTY_MESSAGES
   const userEmail = userInfo?.email || ''
   const userName = userInfo?.name || userInfo?.preferred_username || 'My Account'
   const avatarText = (userEmail || userName || 'U').trim().charAt(0).toUpperCase()
 
   // Auto-login detection
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    if (params.has('login_success')) {
-      setIsLoggedIn(true)
+    if (initialUrlState.shouldCleanUrl) {
       window.history.replaceState({}, document.title, window.location.pathname)
-    } else if (params.has('error')) {
-      setError(params.get('error'))
     }
-  }, [])
+  }, [initialUrlState.shouldCleanUrl])
 
   useEffect(() => {
     if (!isLoggedIn) {
-      setUserInfo(null)
       return
     }
 
@@ -224,9 +234,9 @@ export default function App() {
     }
   }, [input])
 
-  const startNewChat = useCallback(() => {
+  const startNewChat = useCallback((event) => {
     const id = genId()
-    const chat = { id, title: 'New Chat', messages: [], createdAt: Date.now() }
+    const chat = { id, title: 'New Chat', messages: [], createdAt: createdAtFromEvent(event) }
     setChats(prev => [chat, ...prev])
     setActiveChatId(id)
     setError(null)
@@ -237,7 +247,7 @@ export default function App() {
     setChats(prev => prev.map(c => c.id === chatId ? updater(c) : c))
   }, [])
 
-  const handleSend = async (text) => {
+  const handleSend = async (text, event) => {
     const content = (text || input).trim()
     if (!content || isLoading) return
 
@@ -246,7 +256,7 @@ export default function App() {
     if (!chatId) {
       const id = genId()
       const title = content.length > 40 ? content.slice(0, 40) + '…' : content
-      const chat = { id, title, messages: [], createdAt: Date.now() }
+      const chat = { id, title, messages: [], createdAt: createdAtFromEvent(event) }
       setChats(prev => [chat, ...prev])
       setActiveChatId(id)
       chatId = id
@@ -285,7 +295,7 @@ export default function App() {
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      handleSend()
+      handleSend(undefined, e)
     }
   }
 
@@ -393,7 +403,7 @@ export default function App() {
                 </p>
                 <div className="suggestions">
                   {SUGGESTIONS.map(s => (
-                    <button key={s} className="suggestion-chip" onClick={() => handleSend(s)}>
+                    <button key={s} className="suggestion-chip" onClick={(event) => handleSend(s, event)}>
                       {s}
                     </button>
                   ))}
@@ -448,7 +458,7 @@ export default function App() {
                 />
                 <button
                   className="send-btn"
-                  onClick={() => handleSend()}
+                  onClick={(event) => handleSend(undefined, event)}
                   disabled={isLoading || !input.trim()}
                   title="Send"
                 >
