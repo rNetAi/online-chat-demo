@@ -241,7 +241,7 @@ app.post('/api/ai/stream', async (req, res) => {
     }
 });
 
-const PORT = 3001;
+const PORT = 8080;
 app.listen(PORT, () => {
     console.log(`Node.js Example Backend listening on http://localhost:${PORT}`);
     console.log(`Configured to use rNet Auth Backend: ${rnetAuth.issuer}`);

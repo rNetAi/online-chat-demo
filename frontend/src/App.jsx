@@ -39,6 +39,8 @@ const SUGGESTIONS = [
   'Summarize a long document',
 ]
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080'
+
 // ---- Markdown renderer ----
 function renderInline(text) {
   const parts = []
@@ -189,7 +191,7 @@ export default function App() {
 
     async function loadUserInfo() {
       try {
-        const response = await fetch('http://localhost:3001/api/userinfo')
+        const response = await fetch(`${BACKEND_URL}/api/userinfo`)
         const data = await response.json()
         if (!response.ok || !data.success) {
           throw new Error(data.error || 'Failed to load user info')
@@ -259,7 +261,7 @@ export default function App() {
     const payload = { model: 'gemini-2.5-flash-lite', messages: newMessages }
 
     try {
-      const response = await fetch('http://localhost:3001/api/ai', {
+      const response = await fetch(`${BACKEND_URL}/api/ai`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -299,7 +301,7 @@ export default function App() {
           </div>
           <div className="login-card">
             <p className="login-card-title">Sign in to continue</p>
-            <a href="http://localhost:3001/login" className="login-btn">
+            <a href={`${BACKEND_URL}/login`} className="login-btn">
               Continue with rNet
             </a>
           </div>
