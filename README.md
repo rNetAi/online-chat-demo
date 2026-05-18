@@ -30,7 +30,7 @@ AI usage is paid from the user's rNet credit balance, so developer can build pro
 3. Set the redirect URI exactly to:
 
    ```text
-   http://localhost:3001/callback
+   http://localhost:8080/callback
    ```
 
    The redirect URI must match the value in `backend/server.js`, including protocol, host, port, and path. `http://localhost` is intended for local development only; production redirect URIs should use HTTPS.
