@@ -44,8 +44,10 @@ const EMPTY_MESSAGES = []
 
 function getInitialUrlState() {
   const params = new URLSearchParams(window.location.search)
+  const isUrlLoggedIn = params.has('login_success')
+  const isLocalLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
   return {
-    isLoggedIn: params.has('login_success'),
+    isLoggedIn: isUrlLoggedIn || isLocalLoggedIn,
     error: params.has('error') ? params.get('error') : null,
     shouldCleanUrl: params.has('login_success'),
   }
@@ -201,15 +203,20 @@ export default function App() {
 
     async function loadUserInfo() {
       try {
-        const response = await fetch(`${BACKEND_URL}/api/userinfo`)
+        const response = await fetch(`${BACKEND_URL}/api/userinfo`, { credentials: 'include' })
         const data = await response.json()
         if (!response.ok || !data.success) {
           throw new Error(data.error || 'Failed to load user info')
         }
-        if (!ignore) setUserInfo(data.data)
+        if (!ignore) {
+          setUserInfo(data.data)
+          localStorage.setItem('isLoggedIn', 'true')
+        }
       } catch (err) {
         if (!ignore) {
           console.error('Failed to load user info:', err)
+          setIsLoggedIn(false)
+          localStorage.removeItem('isLoggedIn')
         }
       }
     }
@@ -274,6 +281,7 @@ export default function App() {
       const response = await fetch(`${BACKEND_URL}/api/ai`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(payload),
       })
       const data = await response.json()
@@ -364,7 +372,7 @@ export default function App() {
         )}
 
         <div className="sidebar-footer">
-          <div className="user-profile" onClick={() => { setIsLoggedIn(false); setChats([]); setActiveChatId(null); setUserInfo(null) }}>
+          <div className="user-profile" onClick={() => { setIsLoggedIn(false); setChats([]); setActiveChatId(null); setUserInfo(null); localStorage.removeItem('isLoggedIn') }}>
             <div className="user-avatar">{avatarText}</div>
             <div className="user-info">
               <div className="user-name">{userName}</div>
