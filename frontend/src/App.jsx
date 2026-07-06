@@ -44,12 +44,23 @@ const EMPTY_MESSAGES = []
 
 function getInitialUrlState() {
   const params = new URLSearchParams(window.location.search)
+  
+  const accessToken = params.get('access_token')
+  const refreshToken = params.get('refresh_token')
+  if (accessToken) {
+    localStorage.setItem('access_token', accessToken)
+    localStorage.setItem('isLoggedIn', 'true')
+  }
+  if (refreshToken) {
+    localStorage.setItem('refresh_token', refreshToken)
+  }
+
   const isUrlLoggedIn = params.has('login_success')
   const isLocalLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
   return {
     isLoggedIn: isUrlLoggedIn || isLocalLoggedIn,
     error: params.has('error') ? params.get('error') : null,
-    shouldCleanUrl: params.has('login_success'),
+    shouldCleanUrl: params.has('login_success') || params.has('access_token'),
   }
 }
 
@@ -203,7 +214,11 @@ export default function App() {
 
     async function loadUserInfo() {
       try {
-        const response = await fetch(`${BACKEND_URL}/api/userinfo`, { credentials: 'include' })
+        const token = localStorage.getItem('access_token')
+        const response = await fetch(`${BACKEND_URL}/api/userinfo`, { 
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+          credentials: 'include' 
+        })
         const data = await response.json()
         if (!response.ok || !data.success) {
           throw new Error(data.error || 'Failed to load user info')
@@ -217,6 +232,8 @@ export default function App() {
           console.error('Failed to load user info:', err)
           setIsLoggedIn(false)
           localStorage.removeItem('isLoggedIn')
+          localStorage.removeItem('access_token')
+          localStorage.removeItem('refresh_token')
         }
       }
     }
@@ -278,9 +295,13 @@ export default function App() {
     const payload = { model: 'gemini-2.5-flash-lite', messages: newMessages }
 
     try {
+      const token = localStorage.getItem('access_token')
       const response = await fetch(`${BACKEND_URL}/api/ai`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
         credentials: 'include',
         body: JSON.stringify(payload),
       })
@@ -372,7 +393,15 @@ export default function App() {
         )}
 
         <div className="sidebar-footer">
-          <div className="user-profile" onClick={() => { setIsLoggedIn(false); setChats([]); setActiveChatId(null); setUserInfo(null); localStorage.removeItem('isLoggedIn') }}>
+          <div className="user-profile" onClick={() => { 
+            setIsLoggedIn(false); 
+            setChats([]); 
+            setActiveChatId(null); 
+            setUserInfo(null); 
+            localStorage.removeItem('isLoggedIn'); 
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+          }}>
             <div className="user-avatar">{avatarText}</div>
             <div className="user-info">
               <div className="user-name">{userName}</div>
