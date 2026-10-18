@@ -63,8 +63,7 @@ function createdAtFromEvent(event) {
   return event?.timeStamp ? performance.timeOrigin + event.timeStamp : performance.timeOrigin
 }
 
-// Tokens live on the backend; requests are not credentialed, so the backend's
-// default CORS policy (Access-Control-Allow-Origin: *) accepts them.
+// The backend keeps the rNet session in a cookie, so requests are credentialed.
 function authHeaders() {
   const token = localStorage.getItem('access_token')
   return token ? { Authorization: `Bearer ${token}` } : {}
@@ -107,6 +106,7 @@ export default function App() {
       try {
         const response = await fetch(`${BACKEND_URL}/api/userinfo`, {
           headers: authHeaders(),
+          credentials: 'include',
         })
         const data = await response.json()
         if (!response.ok || !data.success) {
@@ -190,6 +190,7 @@ export default function App() {
       const response = await fetch(`${BACKEND_URL}/api/ai`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        credentials: 'include',
         body: JSON.stringify(payload),
       })
       const data = await response.json().catch(() => ({}))
